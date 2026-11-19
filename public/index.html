@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spin Draft XI</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0f3d2e">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Spin Draft"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png"><link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Archivo+Narrow:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f5f3;--ink:#101a15;--card:#fff;--line:#d9dfdb;--green:#14573a;--pitch:#1d6b45;--gold:#e8b923;--red:#c93a2b;--mut:#56645c;--focus:#1a6fd4;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b120f;--ink:#e8eee9;--card:#121c17;--line:#24352c;--mut:#96a79d;--pitch:#17583a;--focus:#7db4ff;--red:#ff7a6b}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+#appbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:0 0 12px;padding:8px 12px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:.88rem;color:var(--mut)}
+#presets h2{font-size:2rem}#presets .row3{margin-top:4px}.pcols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}@media(max-width:640px){.pcols{grid-template-columns:1fr}}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-top:10px}.phead span{display:flex;gap:6px}.phead button{padding:4px 10px;font-size:.8rem}
+.plist{display:grid;gap:0 10px;max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:2px 12px;margin-top:6px}.plist .chk{margin:7px 0}
+#presets .crow{display:flex;align-items:center;gap:6px}#presets .crow .chk{flex:1;margin:7px 0}#presets .tag{font-style:normal;font-size:.72rem;font-weight:600;color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:0 6px}
+#presets .crow button{padding:2px 9px;font-size:1rem;line-height:1.2}#presets .addrow{margin-top:8px}
+#pMsg,#setMsg{min-height:1.3em;color:var(--red);font-weight:600;margin:8px 0 0}#pRo{color:var(--mut);margin:.4rem 0 0}#presets .btns{flex-wrap:wrap}#presets .btns button:first-child{flex:1 1 auto}
+#endModal,#editModal{position:fixed;inset:0;background:rgba(20,33,27,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:60}#endModal[hidden],#editModal[hidden]{display:none}#editModal{z-index:70}
+#endModal .card,#editModal .card{max-width:400px;width:100%;text-align:center;max-height:92vh;overflow:auto}#endModal h2,#editModal h2{font-size:2rem}#endModal p,#editModal p{color:var(--mut)}
+#voteBox,#board{margin:10px 0}#voteBox h3,#board h3{margin:.2rem 0 .5rem;font-size:1.05rem}#voteBox .vb{display:block;width:100%;margin:6px 0;text-align:left}#voteBox .vb.on{outline:2px solid var(--gold)}
+.board{width:100%;border-collapse:collapse;text-align:left}.board td{padding:5px 6px;border-bottom:1px solid var(--line)}.board td:last-child{text-align:right;font-weight:700}
+.sl{position:relative}.ed{position:absolute;top:-3px;right:0;width:20px;height:20px;padding:0;border-radius:50%;border:1px solid #fff9;background:#000a;color:#fff;font-size:.7rem;line-height:1;cursor:pointer}
+#score{margin:0 0 .6rem;font-weight:600}
+#appbar[hidden]{display:none}#appbar button{font:inherit;font-weight:600;padding:5px 12px;border-radius:8px;border:1px solid var(--line);background:var(--green);color:#fff;cursor:pointer}
+#appbar #offMsg{color:var(--red);font-weight:600}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Archivo,system-ui,sans-serif;line-height:1.45}
+main{max-width:1280px;margin:0 auto;padding:20px 16px 40px}
+h1,h2{font-family:"Archivo Narrow",Impact,sans-serif;margin:0;letter-spacing:.01em}
+h1{font-size:clamp(2.4rem,7vw,4rem);line-height:1;color:var(--ink)}
+header p{color:var(--mut);margin:.4rem 0 1.2rem;max-width:52ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.chk{display:flex;gap:10px;align-items:center;font-weight:400;margin:10px 0}.chk input{width:auto}
+#names{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.nf{display:grid;gap:4px}
+button{font:inherit;font-weight:800;border:0;border-radius:10px;padding:12px 18px;background:var(--green);color:#fff;cursor:pointer}
+button.alt{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:600}
+button:disabled{opacity:.5;cursor:default}
+.go{margin-top:16px;width:100%;font-size:1.1rem}
+.grid{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:16px;margin-top:12px;align-items:start}
+@media(max-width:780px){.grid{grid-template-columns:1fr}}
+#bar{font-family:"Archivo Narrow",sans-serif;font-size:1.5rem;font-weight:700}
+#bar small{display:block;font:400 .95rem Archivo,sans-serif;color:var(--mut)}
+.wrap{position:relative;max-width:440px;margin:0 auto}
+canvas{width:100%;height:auto;display:block}
+.ptr{position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:0;height:0;border:14px solid transparent;border-top:26px solid var(--gold);border-bottom:0;filter:drop-shadow(0 1px 1px #0006);z-index:2}
+#res{text-align:center;margin:12px 0;min-height:3.2rem}
+#res b{font-family:"Archivo Narrow",sans-serif;font-size:2rem;display:block;line-height:1.1}
+#res span{color:var(--mut)}
+#pick{border-top:1px solid var(--line);margin-top:14px;padding-top:6px}
+.row2{display:grid;grid-template-columns:1fr 110px;gap:8px}
+#msg{color:var(--red);min-height:1.3em;font-weight:600;margin:6px 0 0}
+.btns{display:flex;gap:8px;margin-top:8px}.btns button:first-child{flex:1}
+#tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+#tabs button{padding:7px 12px;font-weight:600;background:transparent;color:var(--ink);border:1px solid var(--line);display:flex;gap:7px;align-items:center}
+#tabs button[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+#tabs i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.pitch{background:repeating-linear-gradient(0deg,var(--pitch) 0 54px,color-mix(in srgb,var(--pitch) 88%,#000) 54px 108px);border:2px solid #ffffffaa;border-radius:10px;padding:14px 6px;display:flex;flex-direction:column;gap:14px;min-height:430px;justify-content:space-around}
+.row{display:flex;justify-content:space-around;align-items:flex-start}
+.sl{flex:1 1 0;min-width:0;text-align:center;color:#fff;font-size:.78rem;font-weight:600;min-height:62px;text-shadow:0 1px 2px #0008;overflow-wrap:anywhere}
+.dot{width:40px;height:40px;margin:0 auto 3px;border-radius:50%;display:grid;place-items:center;font:700 .85rem "Archivo Narrow",sans-serif;border:2px dashed #ffffff88;color:#ffffffcc}
+.dot.f{border:2px solid #fff;color:#fff}
+.done h2{font-size:2rem}
+#plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:250px;overflow:auto;padding:2px}
+.hint{grid-column:1/-1;margin:0;color:var(--mut);font-size:.9rem}
+.pl{display:flex;align-items:center;gap:8px;text-align:left;padding:6px 8px;background:var(--bg);color:var(--ink);border:1px solid var(--line);font-weight:600;font-size:.88rem}
+.pl span{min-width:0;overflow-wrap:anywhere}
+.pl em{margin-left:auto;font-style:normal;color:var(--mut);font-size:.78rem}
+.pl.sel{border-color:var(--gold);box-shadow:inset 0 0 0 2px var(--gold)}
+.pl:disabled{opacity:.4;text-decoration:line-through;cursor:default}
+.av{width:34px;height:34px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font:700 .8rem "Archivo Narrow",sans-serif;object-fit:cover}
+.row2{grid-template-columns:1fr}.row2>div+div{display:none}
+button.sl{background:none;border:0;padding:0;border-radius:8px;font:inherit;font-size:.78rem;font-weight:600;cursor:pointer}
+.sl.open .dot{border:2px solid var(--gold);color:#fff}
+.sl.on .dot{background:var(--gold);color:#14211b}
+#plist{display:block;max-height:none}
+.pv{display:flex;align-items:center;gap:10px;margin:8px 0}.pv .av{width:44px;height:44px}
+.pitches{display:grid;grid-template-columns:repeat(var(--n,2),minmax(0,1fr));gap:10px}
+.phd{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:6px 10px;border-left:6px solid var(--c);background:var(--bg);border-radius:6px;margin-bottom:6px;font-family:"Archivo Narrow",sans-serif;font-size:1.15rem;min-width:0}
+.phd b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.phd span{color:var(--mut);font-size:.95rem}
+.pcol.turn .phd{box-shadow:0 0 0 2px var(--gold)}
+.pitches .sl{font-size:.68rem}.pitches .dot{width:34px;height:34px;font-size:.75rem}
+@media(max-width:780px){.pitches .dot{width:28px;height:28px;font-size:.68rem}.pitches .sl{font-size:.6rem}.pitch{min-height:360px;padding:10px 2px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+#toss{position:relative;overflow:hidden;text-align:center}
+#toss h2{font-size:2rem}
+#toss .sub{color:var(--mut);margin:.3rem auto 1rem;max-width:46ch}
+.coinwrap{perspective:900px;height:190px;display:grid;place-items:center;margin:8px 0}
+.coinwrap.fly .coin{animation:cfly 2.6s cubic-bezier(.3,.6,.3,1)}
+@keyframes cfly{0%{margin-top:0;scale:1}40%{margin-top:-70px;scale:1.25}100%{margin-top:0;scale:1}}
+.coin{width:150px;height:150px;position:relative;transform-style:preserve-3d}
+.face{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:grid;place-content:center;color:#fff;border:7px solid var(--gold);box-shadow:0 6px 14px #0004,inset 0 0 0 3px #ffffff55;text-shadow:0 1px 2px #0007;padding:8px;min-width:0}
+.face b{font:700 2.6rem/1 "Archivo Narrow",sans-serif}
+.face small{font-weight:600;font-size:.8rem;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.face em{font-style:normal;font-size:.7rem;letter-spacing:.12em;opacity:.85}
+#toss .wrap{margin:8px auto}
+#tossRes{min-height:4rem;margin:12px 0}
+#tossRes b{font:700 2rem/1.1 "Archivo Narrow",sans-serif;display:block;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+#tossRes span{color:var(--mut)}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+#toss .btns{max-width:420px;margin:8px auto 0}
+.cf{position:absolute;top:-14px;width:9px;height:14px;border-radius:2px;animation:cfall 2.4s ease-in forwards;pointer-events:none}
+@keyframes cfall{to{transform:translateY(520px) rotate(720deg);opacity:.2}}
+.code{font-family:"Archivo Narrow",sans-serif;letter-spacing:.22em;background:var(--bg);padding:0 10px;border-radius:8px;border:1px dashed var(--ink);user-select:all}
+.hr{border:0;border-top:1px solid var(--line);margin:22px 0 6px}
+.sub2{color:var(--mut);margin:.2rem 0 .6rem;font-size:.95rem}
+.row3{display:grid;grid-template-columns:1fr auto;gap:8px}
+.lp{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--line);border-radius:10px;margin:5px 0;background:var(--bg)}
+.lp i{width:12px;height:12px;border-radius:50%;flex:none}.lp b{flex:1;min-width:0;overflow-wrap:anywhere}.lp small{color:var(--mut)}
+.lp .on{width:9px;height:9px;background:#2fa35b}.lp .off{width:9px;height:9px;background:var(--mut);opacity:.5}
+.lp button{padding:4px 10px;font-size:.85rem}
+#acct .lp,#lobInv .lp{flex-wrap:wrap}#acUser,#acAdd{width:100%}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border:1px solid var(--line);border-radius:12px;background:var(--bg);margin:10px 0 2px}
+.seg button{background:transparent;color:var(--ink);font-weight:600;padding:8px 10px}.seg button[aria-selected=true]{background:var(--green);color:#fff}
+.pw{display:grid;grid-template-columns:1fr auto;gap:8px}.pw button{padding:9px 12px}
+.fh{color:var(--mut);font-size:.85rem;margin:4px 0 0;min-height:1.2em}.fh.bad{color:var(--red);font-weight:600}
+.acHead{display:flex;align-items:center;gap:10px;margin:6px 0 10px}.acHead .who{flex:1}.acHead .av{width:42px;height:42px;font-size:.95rem}
+.who{min-width:0;display:flex;flex-direction:column;line-height:1.2}.who small{color:var(--mut)}
+#acct .lp .av,#lobInv .lp .av{width:30px;height:30px;font-size:.72rem}#acct .lp .who,#lobInv .lp .who{flex:1}
+.lp.hot{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold);background:color-mix(in srgb,var(--gold) 12%,var(--bg))}
+.sec{display:flex;align-items:center;gap:8px;margin:16px 0 4px;font-weight:600}
+.pill{background:var(--gold);color:#14211b;border-radius:999px;font:700 .75rem Archivo,sans-serif;padding:1px 8px}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:12px;text-align:center;color:var(--mut);margin:6px 0;font-size:.92rem}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));max-width:min(92vw,420px);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:12px;display:flex;gap:10px;align-items:center;z-index:80;box-shadow:0 6px 20px #0005;font-weight:600}
+#toast[hidden]{display:none}#toast.bad{background:var(--red);color:#fff}#toast button{padding:4px 12px;background:var(--gold);color:#14211b;flex:none}
+
+#lobby h2{font-size:2rem}#lobby .opt{margin-top:6px}
+#olmsg,#lobMsg,#acMsg{min-height:1.3em;color:var(--red);font-weight:600;margin:6px 0 0}
+#conn{color:var(--mut);font-size:.85rem;margin:4px 0 0}
+#autoBtn{margin-top:8px;width:100%}
+@media(prefers-reduced-motion:reduce){.coinwrap.fly .coin,.cf,#tossRes b{animation:none!important}}
+
+/* --- polish: touch targets, feedback, option tiles, steps, home tabs --- */
+.card{box-shadow:0 8px 24px -14px rgba(15,61,46,.45)}
+button{min-height:44px;transition:transform .08s,filter .15s,background .15s}
+button:hover:not(:disabled){filter:brightness(1.12)}button.alt:hover:not(:disabled){filter:none;background:color-mix(in srgb,var(--ink) 7%,transparent)}
+button:active:not(:disabled){transform:scale(.97)}
+input,select{min-height:44px}input[type=checkbox]{min-height:0}
+.lp button,.phead button,#presets .crow button,#appbar button,#acLogout{min-height:36px}
+@media(pointer:coarse){.ed{width:30px;height:30px;font-size:.85rem}}
+.steps{list-style:none;display:flex;flex-wrap:wrap;gap:8px;padding:0;margin:0 0 16px}
+.steps li{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 14px 5px 6px;font-weight:600;font-size:.9rem}
+.steps b{width:24px;height:24px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font:700 .8rem "Archivo Narrow",sans-serif;flex:none}
+.homeTabs{margin:0 0 14px}.homeTabs button{padding:10px}
+#locBox h2,#onSec h2{font-size:1.9rem}
+#setup .chk,#lobby .chk{align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer;margin:8px 0}
+#setup .chk input,#lobby .chk input{width:20px;height:20px;margin:2px 0 0;flex:none;accent-color:var(--pitch)}
+#setup .chk:has(input:checked),#lobby .chk:has(input:checked){border-color:var(--pitch);background:color-mix(in srgb,var(--pitch) 12%,var(--bg))}
+.ct{display:flex;flex-direction:column;line-height:1.25}.ct b{font-weight:600}.ct small{color:var(--mut);font-size:.85rem}
+#lobby .code{font-size:2.4rem}
+@media(max-width:480px){.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.steps li{flex-direction:column;border-radius:12px;padding:8px 4px;text-align:center;font-size:.78rem;line-height:1.2}.btns{flex-wrap:wrap}.btns button{flex:1 1 140px}}
+#lobby .btns button{flex:1 1 0;min-width:0}
+
+/* --- professional pass: one type scale, one radius, quiet surfaces, a pitch that looks like a pitch --- */
+body{font-size:16px;-webkit-font-smoothing:antialiased}
+main{max-width:1200px;padding:24px 20px 56px}
+h1,h2{font-family:Archivo,system-ui,sans-serif;font-weight:800;letter-spacing:-.02em}
+h1{font-size:clamp(1.9rem,4.5vw,2.6rem);line-height:1.1;display:flex;align-items:center;gap:12px}
+h1 img{border-radius:8px;flex:none}
+header p{font-size:1rem;margin:.5rem 0 1rem;max-width:58ch}
+#locBox h2,#onSec h2,#lobby h2,#presets h2,#toss h2,#endModal h2,#editModal h2,.done h2{font-size:1.5rem;line-height:1.2}
+#acct h2{font-size:1.25rem!important}
+.card{border-radius:14px;padding:22px;box-shadow:var(--sh,0 1px 2px rgba(16,26,21,.06),0 6px 20px -10px rgba(16,26,21,.2))}
+label{font-size:.875rem;margin:16px 0 6px}
+input,select{background:var(--card);border-radius:10px;padding:10px 12px}
+input:focus,select:focus{border-color:var(--focus)}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button{font-weight:600;border-radius:10px;letter-spacing:.005em}
+button.alt{background:var(--card)}
+.go{font-size:1rem;font-weight:700;margin-top:20px}
+.steps{margin:0 0 20px;gap:6px 22px}
+.steps li{background:none;border:0;padding:0;color:var(--mut);font-weight:600}
+.steps b{background:transparent;color:var(--green);border:1.5px solid var(--green);font-family:Archivo,sans-serif}
+@media(prefers-color-scheme:dark){.steps b{color:#6fd3a0;border-color:#6fd3a0}}
+@media(max-width:480px){.steps li{background:var(--card);border:1px solid var(--line)}}
+#setup .chk,#lobby .chk{background:var(--card);padding:12px 14px}
+.seg{background:var(--bg)}
+.seg button[aria-selected=true]{box-shadow:0 1px 2px #0003}
+.lp{background:var(--card)}
+.code{border:1px solid var(--line);background:var(--bg)}
+#bar{font-family:Archivo,sans-serif;font-size:1.2rem;font-weight:800;letter-spacing:-.01em}
+#bar small{font-size:.9rem;font-weight:400;letter-spacing:0;margin-top:2px}
+#res b{font-family:Archivo,sans-serif;font-weight:800;font-size:1.75rem;letter-spacing:-.02em}
+#pick{margin-top:16px;padding-top:12px}
+.phd{font-family:Archivo,sans-serif;font-weight:600;font-size:1rem;border-left-width:4px;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--c)}
+.pcol.turn .phd{box-shadow:0 0 0 2px var(--gold);border-color:var(--gold);border-left-color:var(--c)}
+.phd span{font-size:.85rem;font-weight:400}
+.pitch{position:relative;border:0;box-shadow:inset 0 0 0 2px #ffffff80}
+.pitch>.row{position:relative;z-index:1}
+.pitch::before,.pitch::after{content:"";position:absolute;pointer-events:none;border:2px solid #ffffff55}
+.pitch::before{left:24%;right:24%;bottom:0;height:16%;border-bottom:0}
+.pitch::after{left:50%;top:0;width:84px;height:42px;margin-left:-42px;border-top:0;border-radius:0 0 84px 84px}
+.dot{font-family:Archivo,sans-serif;font-weight:700;font-size:.75rem}
+.dot.f{box-shadow:0 2px 6px #0005}
+.ed{background:#000b}
+#endModal,#editModal{background:rgba(8,16,12,.62);backdrop-filter:blur(3px)}
+#toast{border-radius:10px}
+#setup,#lobby,#presets,#toss{max-width:760px}
+#setup .chk:has(input:checked),#lobby .chk:has(input:checked){background:color-mix(in srgb,var(--pitch) 8%,var(--card))}
+.pitch::before{height:26%}
+.pitch::after{display:none}
+</style></head>
+<body><main>
+<div id="appbar" hidden><span id="offMsg" hidden>You are offline. The single-device game still works. Online rooms need internet.</span><button id="install" hidden>Install app</button></div>
+<header><h1><img src="/icons/favicon-32.png" alt="" width="34" height="34">Spin Draft XI</h1><p>Build your starting eleven against your friends. You type the names, so any player from any era is allowed.</p>
+<ol class="steps"><li><b>1</b>Spin a club or country</li><li><b>2</b>Pick one of its players</li><li><b>3</b>Vote for the best XI</li></ol></header>
+
+<section id="setup" class="card">
+ <div class="seg homeTabs" role="tablist" aria-label="How do you want to play?"><button type="button" role="tab" id="tabLocal" aria-selected="true">On this device</button><button type="button" role="tab" id="tabOnline" aria-selected="false">Play online</button></div>
+ <div id="locBox">
+ <h2>Set up the draft</h2>
+ <label for="np">Number of players</label>
+ <select id="np"><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select>
+ <label>Players and formations</label><div id="names"></div>
+ <label for="src">What goes on the wheel</label>
+ <select id="src"><option value="both">Clubs and countries</option><option value="club">Clubs only</option><option value="nat">Countries only</option></select>
+ <label for="preset">Wheel preset (which teams can come up)</label>
+ <div class="row3"><select id="preset"></select><button class="alt" id="presetEdit" type="button">Edit presets</button></div>
+ <p class="sub2" id="presetInfo"></p>
+ <label class="chk"><input type="checkbox" id="posOn"><span class="ct"><b>Position wheel</b><small>A second wheel picks the position you must fill.</small></span></label>
+ <label class="chk"><input type="checkbox" id="tossOn" checked><span class="ct"><b>Toss for first pick</b><small>A coin flip for 2 players, a wheel for more.</small></span></label>
+ <label class="chk"><input type="checkbox" id="snake" checked><span class="ct"><b>Snake order</b><small>The pick order reverses every round.</small></span></label>
+ <label class="chk"><input type="checkbox" id="noRepOn"><span class="ct"><b>No repeat in a row</b><small>The club or country just spun is left off the next wheel.</small></span></label>
+ <label for="rrN">Re-spins per player</label>
+ <select id="rrN"><option value="0">None</option><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+ <label class="chk"><input type="checkbox" id="rrAnyOn"><span class="ct"><b>Re-spin on any pick</b><small>Use a re-spin on any of your picks, not only the first of a round.</small></span></label>
+ <p id="setMsg" role="status"></p>
+ <button class="go" id="start" style="margin-top:6px">Start the draft</button>
+ </div>
+ <div id="onSec" hidden>
+ <h2>Play online</h2>
+ <p class="sub2" id="onHint">Everyone plays on their own phone. Create a room and share its code, or join a friend's room with their code.</p>
+ <div id="onBox">
+  <label for="onName">Your name</label><input id="onName" maxlength="24" placeholder="Your name" autocomplete="nickname">
+  <button class="go" id="onCreate" style="margin-top:10px">Create a room</button>
+  <label for="onCode">Have a room code?</label>
+  <div class="row3"><input id="onCode" maxlength="8" placeholder="e.g. K7M2QX" autocapitalize="characters" autocomplete="off" spellcheck="false"><button id="onJoin">Join room</button></div>
+  <p id="olmsg" role="status"></p>
+ </div>
+ <div id="acct" hidden>
+  <hr class="hr"><h2 style="font-size:1.7rem">Account and friends</h2>
+  <div id="acOut">
+   <p class="sub2">Free account: add friends and invite them to your room with one tap. You can still play without one.</p>
+   <div class="seg" role="tablist" aria-label="Account"><button type="button" role="tab" id="tabLogin" aria-selected="true">Log in</button><button type="button" role="tab" id="tabReg" aria-selected="false">Create account</button></div>
+   <label for="acUser">Username</label><input id="acUser" maxlength="20" placeholder="e.g. messi10" autocapitalize="none" autocomplete="username" spellcheck="false" aria-describedby="acUH">
+   <p class="fh" id="acUH"></p>
+   <label for="acPass">Password</label>
+   <div class="pw"><input id="acPass" type="password" maxlength="72" placeholder="at least 8 characters" autocomplete="current-password" aria-describedby="acPH"><button class="alt" type="button" id="acEye" aria-pressed="false">Show</button></div>
+   <p class="fh" id="acPH"></p>
+   <button class="go" id="acSubmit" type="button" style="margin-top:8px">Log in</button>
+  </div>
+  <div id="acIn" hidden>
+   <div class="acHead"><span id="acAv"></span><div class="who"><b id="acMe"></b><small>Signed in</small></div><button class="alt" id="acLogout" type="button">Log out</button></div>
+   <div id="acInv"></div>
+   <label for="acAdd">Add a friend</label>
+   <div class="row3"><input id="acAdd" maxlength="20" placeholder="their username" autocapitalize="none" autocomplete="off" spellcheck="false"><button id="acAddB" type="button">Send request</button></div>
+   <div id="acReq"></div>
+   <div class="sec">Friends <span class="pill" id="acCount" hidden></span></div><div id="acFr"></div>
+  </div>
+ </div>
+ </div>
+</section>
+
+<section id="lobby" class="card" hidden>
+ <h2>Room <span class="code" id="lobCode"></span></h2>
+ <p class="sub2">Friends open the game, choose "Join room" and enter this code. The host starts the draft when everyone is in.</p>
+ <div class="btns"><button class="alt" id="lobCopy">Copy code</button><button class="alt" id="lobLink">Copy invite link</button></div>
+ <div id="lobInv"></div>
+ <label>Players in the room</label><div id="lobPlayers"></div>
+ <label for="lobName">Your name</label><input id="lobName" maxlength="24">
+ <label for="lobForm">Your formation</label><select id="lobForm"></select>
+ <div id="lobHost">
+  <hr class="hr">
+  <label for="lobSrc">What goes on the wheel (host)</label>
+  <select id="lobSrc"><option value="both">Clubs and countries</option><option value="club">Clubs only</option><option value="nat">Countries only</option></select>
+  <label for="lobPreset">Wheel preset (host)</label>
+  <div class="row3"><select id="lobPreset"></select><button class="alt" id="lobPresetEdit" type="button">Edit presets</button></div>
+  <label class="chk opt"><input type="checkbox" id="lobPos"><span class="ct"><b>Position wheel</b><small>A second wheel picks the position you must fill.</small></span></label>
+  <label class="chk"><input type="checkbox" id="lobToss"><span class="ct"><b>Random first pick</b><small>A random player picks first.</small></span></label>
+  <label class="chk"><input type="checkbox" id="lobSnake"><span class="ct"><b>Snake order</b><small>The pick order reverses every round.</small></span></label>
+  <label class="chk"><input type="checkbox" id="lobNoRep"><span class="ct"><b>No repeat in a row</b><small>The club or country just spun is left off the next wheel.</small></span></label>
+  <label for="lobRR">Re-spins per player (host)</label>
+  <select id="lobRR"><option value="0">None</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+  <label class="chk"><input type="checkbox" id="lobRRAny"><span class="ct"><b>Re-spin on any pick</b><small>Use a re-spin on any of your picks, not only the first of a round.</small></span></label>
+ </div>
+ <p class="sub2" id="lobWheel"></p>
+ <p id="lobMsg" role="status"></p>
+ <div class="btns"><button id="lobStart">Start the draft</button><button class="alt" id="lobLeave">Leave room</button></div>
+</section>
+
+<section id="toss" class="card" hidden>
+ <h2>Who picks first?</h2>
+ <p class="sub" id="tossHint"></p>
+ <div id="tossStage"></div>
+ <div id="tossRes" aria-live="polite"></div>
+ <div class="btns"><button id="tossBtn"></button><button class="alt" id="tossSkip"></button></div>
+</section>
+
+<section id="presets" class="card" hidden>
+ <h2>Wheel presets</h2>
+ <p class="sub2">Choose which clubs and countries can come up on the wheel, and add any club or country you like. A team you add has no player list: whoever lands on it types the player's name. Presets stay on this device; in an online room the host's preset is the one used.</p>
+ <label for="pList">Preset</label>
+ <div class="row3"><select id="pList"></select><button id="pNew" type="button">New preset</button></div>
+ <p id="pRo">Built-in presets cannot be changed. Duplicate one to make your own version.</p>
+ <label for="pName">Preset name</label><input id="pName" maxlength="30" autocomplete="off">
+ <div class="pcols">
+  <div><div class="phead"><b id="pcT"></b><span><button class="alt" type="button" data-all="c">All</button><button class="alt" type="button" data-none="c">None</button></span></div><div id="pClubs" class="plist"></div><div class="row3 addrow"><input id="pAddC" maxlength="24" placeholder="Add any club" autocomplete="off" aria-label="Add a club"><button class="alt" type="button" id="pAddCb">Add</button></div></div>
+  <div><div class="phead"><b id="pnT"></b><span><button class="alt" type="button" data-all="n">All</button><button class="alt" type="button" data-none="n">None</button></span></div><div id="pNats" class="plist"></div><div class="row3 addrow"><input id="pAddN" maxlength="24" placeholder="Add any country" autocomplete="off" aria-label="Add a country"><button class="alt" type="button" id="pAddNb">Add</button></div></div>
+ </div>
+ <p id="pMsg" role="status"></p>
+ <div class="btns"><button id="pUse" type="button">Use this preset</button><button class="alt" id="pDup" type="button">Duplicate</button><button class="alt" id="pDel" type="button">Delete</button><button class="alt" id="pBack" type="button">Back</button></div>
+</section>
+
+<section id="game" hidden>
+ <div id="bar"></div><p id="score" hidden></p><p id="conn" hidden></p><p><button class="alt" id="gameLeave" hidden>Leave room</button></p>
+ <div class="grid">
+  <div class="card">
+   <div class="wrap"><div class="ptr"></div><canvas id="wheel" width="460" height="460" aria-label="Spinning wheel"></canvas></div>
+   <div id="res" aria-live="polite"></div>
+   <button class="go" id="spinBtn" style="margin-top:0"></button>
+   <button class="alt" id="autoBtn" hidden></button>
+   <button class="alt" id="voteBtn" hidden>Vote and scoreboard</button>
+   <div id="pick" hidden>
+    <div id="plist"></div><div class="row2"><div><label for="pn">Type the player's name</label><input id="pn" autocomplete="off" placeholder="Type a name"></div>
+    <div><label for="slot">Position</label><select id="slot"></select></div></div>
+    <p id="msg"></p>
+    <div class="btns"><button id="add">Confirm pick</button><button class="alt" id="reroll"></button></div>
+   </div>
+  </div>
+  <div class="card"><div id="pitch" class="pitches"></div></div>
+ </div>
+</section>
+</main>
+<div id="endModal" role="dialog" aria-modal="true" aria-labelledby="endT" hidden>
+ <div class="card"><h2 id="endT">Draft complete</h2>
+  <div id="voteBox"></div><div id="board"></div>
+  <p>Play again with the same players and settings? The wheel starts fresh and the scoreboard stays.</p>
+  <div class="btns"><button id="newGame">New game</button><button class="alt" id="endClose">View squads</button></div><p id="endMsg" role="status"></p></div>
+</div>
+<div id="editModal" role="dialog" aria-modal="true" aria-labelledby="edT" hidden>
+ <div class="card"><h2 id="edT">Fix a name</h2><p>Correct a typo in this pick. Its position and the turn order stay the same.</p>
+  <input id="edName" maxlength="40" autocomplete="off" aria-label="Player name">
+  <div class="btns" style="margin-top:10px"><button id="edSave" type="button">Save</button><button class="alt" id="edCancel" type="button">Cancel</button></div><p id="edMsg" role="status" style="color:var(--red);font-weight:600"></p></div>
+</div>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+<script>
+const CLUB_NAMES=['Real Madrid','Barcelona','Man City','Liverpool','Arsenal','Bayern','PSG','Inter','Juventus','Chelsea','Man United','Atlético','AC Milan','Dortmund'],NAT_NAMES=['Brazil','Argentina','France','England','Spain','Portugal','Germany','Netherlands','Italy','Belgium','Croatia','Morocco'];/* names only: there is no player data, players type the names they pick */
+const SLOTS=['GK','LB','CB','CB','RB','CM','CM','CM','LW','ST','RW'];
+const FORM={'4-3-3':[['LW','ST','RW'],['CM','CM','CM'],['LB','CB','CB','RB'],['GK']],'4-4-2':[['ST','ST'],['LM','CM','CM','RM'],['LB','CB','CB','RB'],['GK']],'4-2-3-1':[['ST'],['LW','CAM','RW'],['CDM','CDM'],['LB','CB','CB','RB'],['GK']],'4-1-4-1':[['ST'],['LM','CM','CM','RM'],['CDM'],['LB','CB','CB','RB'],['GK']],'3-5-2':[['ST','ST'],['CAM'],['LWB','CM','CM','RWB'],['CB','CB','CB'],['GK']],'3-4-3':[['LW','ST','RW'],['LM','CM','CM','RM'],['CB','CB','CB'],['GK']],'5-3-2':[['ST','ST'],['CM','CM','CM'],['LWB','CB','CB','CB','RWB'],['GK']]};
+function mk(f){const rs=FORM[f],slots=[],rows=[];for(let r=rs.length-1;r>=0;r--){const row=[];rs[r].forEach(t=>{row.push(slots.length);slots.push(t)});rows[r]=row}return{f,slots,rows}}
+const FO=v=>Object.keys(FORM).map(k=>`<option${k==v?' selected':''}>${k}</option>`).join('');
+const PAL=['#d6402f','#2f6fb5','#7a3fa0','#1f9aa0','#c25a1a','#b04f78'];
+const WC=['#0f3d2e','#1f6f4a','#17415c','#2b6a94'];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let S={},W={labels:[]},ang=0;
+try{localStorage.removeItem('sd_ph')}catch(e){}/* photos saved by an older version */
+
+function names(){const n=+$('#np').value,old=[...document.querySelectorAll('#names input')].map(e=>e.value),of=[...document.querySelectorAll('#names .pf')].map(e=>e.value);
+ $('#names').innerHTML=Array.from({length:n},(_,i)=>`<div class="nf"><input aria-label="Player ${i+1} name" placeholder="Player ${i+1}" value="${esc(old[i]||'')}"><select class="pf" aria-label="Formation for player ${i+1}">${FO(of[i])}</select></div>`).join('')}
+$('#np').onchange=names;names();
+
+/* wheel */
+const cv=$('#wheel'),cx=cv.getContext('2d');
+function setWheel(labels){W.labels=labels;draw()}
+function draw(){const L=W.labels,N=L.length,s=cv.width,R=s/2-8,a=2*Math.PI/N;
+ cx.clearRect(0,0,s,s);cx.save();cx.translate(s/2,s/2);cx.rotate(ang);
+ L.forEach((l,i)=>{cx.beginPath();cx.moveTo(0,0);cx.arc(0,0,R,i*a,(i+1)*a);cx.closePath();cx.fillStyle=WC[i%WC.length];cx.fill();cx.strokeStyle='#fffdf4';cx.lineWidth=2;cx.stroke();
+  cx.save();cx.rotate(i*a+a/2);cx.fillStyle='#fff';cx.font='700 '+(N>10?15:N>4?19:26)+'px "Archivo Narrow",sans-serif';cx.textAlign='right';cx.textBaseline='middle';cx.fillText(l.length>18?l.slice(0,17)+'…':l,R-14,0);cx.restore()});
+ cx.restore();cx.beginPath();cx.arc(s/2,s/2,22,0,7);cx.fillStyle='#e8b923';cx.fill();cx.strokeStyle='#fffdf4';cx.lineWidth=4;cx.stroke()}
+function spin(){return new Promise(res=>{const N=W.labels.length,a=2*Math.PI/N,st=ang,d=Math.PI*2*(5+Math.random()*3)+Math.random()*Math.PI*2,
+ dur=matchMedia('(prefers-reduced-motion: reduce)').matches?400:4200,t0=performance.now();
+ (function f(now){const p=Math.min(1,(now-t0)/dur);ang=st+d*(1-Math.pow(1-p,3));draw();
+  if(p<1)requestAnimationFrame(f);else{const rel=(((-Math.PI/2-ang)%(2*Math.PI))+2*Math.PI)%(2*Math.PI);res(Math.floor(rel/a))}})(t0)})}
+
+/* game */
+const who=()=>{const n=S.players.length,r=Math.floor(S.t/n),i=S.t%n,o=S.order;return S.snake&&r%2?o[n-1-i]:o[i]};
+const open=p=>[...new Set(p.squad.map((v,i)=>v?null:p.slots[i]).filter(Boolean))];
+function pool(){let o=[];const w=S.wheel;if(S.src!='nat')(w?w.clubs:CLUB_NAMES).forEach(n=>o.push({n,k:'club'}));if(S.src!='club')(w?w.nations:NAT_NAMES).forEach(n=>o.push({n,k:'nat'}));
+ if(!S.online){/* a club or country that has been spun is off the wheel for the rest of the draft */const g=new Set((S.used||[]).map(u=>u.k+':'+u.n)),l=o.filter(x=>!g.has(x.k+':'+x.n));if(l.length)o=l;else S.used=[]/* every team has come up: put them all back */}
+ return o}
+function sample(a,m){return a.map(x=>[Math.random(),x]).sort((x,y)=>x[0]-y[0]).slice(0,m).map(x=>x[1])}
+function newLabels(){let o=pool();if(S.noRepeat&&S.last){const l=o.filter(x=>!(x.k==S.last.k&&x.n==S.last.n));if(l.length>=2)o=l}/* the team that was just spun is left off */
+ S.labs=sample(o,14)}
+
+/* wheel presets: which clubs and countries can come up. Saved on this device; the host's choice is sent to the room. */
+const PRE_KEY='sd_presets';let PRESETS=[],PSEL='all',PEDIT='all',PBACK='setup';
+const BUILT=[{id:'all',name:'All teams'},{id:'clubs',name:'All clubs'},{id:'nats',name:'All countries'}];
+const allClubs=()=>[...CLUB_NAMES],allNats=()=>[...NAT_NAMES];
+function presetById(id){const b=BUILT.find(x=>x.id==id);if(b)return{id:b.id,name:b.name,built:true,clubs:id=='nats'?[]:allClubs(),nations:id=='clubs'?[]:allNats(),customClubs:[],customNations:[]};return PRESETS.find(p=>p.id==id)||null}
+const strs=a=>Array.isArray(a)?a.map(x=>String(x).replace(/[<>]/g,'').replace(/\s+/g,' ').trim().slice(0,24)).filter(Boolean):[];
+const CUSTOM_MAX=30;
+function loadPresets(){PRESETS=[];try{const a=JSON.parse(localStorage.getItem(PRE_KEY)||'[]');if(Array.isArray(a))PRESETS=a.filter(p=>p&&typeof p.id=='string'&&Array.isArray(p.clubs)&&Array.isArray(p.nations)).slice(0,30).map(p=>({id:p.id,name:String(p.name||'My wheel').slice(0,30),clubs:strs(p.clubs),nations:strs(p.nations),customClubs:strs(p.customClubs).slice(0,CUSTOM_MAX),customNations:strs(p.customNations).slice(0,CUSTOM_MAX)}))}catch(e){}
+ try{PSEL=localStorage.getItem('sd_preset')||'all'}catch(e){}if(!presetById(PSEL))PSEL='all'}
+const savePresets=()=>{try{localStorage.setItem(PRE_KEY,JSON.stringify(PRESETS));localStorage.setItem('sd_preset',PSEL)}catch(e){}};
+/* the wheel a preset makes: null means every team */
+function wheelOf(id){if(id=='all')return null;if(id=='__room')return OL.roomWheel||null;const p=presetById(id);if(!p)return null;return{name:p.name,clubs:p.clubs.filter(n=>CLUB_NAMES.includes(n)||(p.customClubs||[]).includes(n)),nations:p.nations.filter(n=>NAT_NAMES.includes(n)||(p.customNations||[]).includes(n))}}
+function matchPreset(w){if(!w)return'all';const key=x=>JSON.stringify([[...x.clubs].sort(),[...x.nations].sort()]),k=key(w);
+ for(const id of[...BUILT.map(b=>b.id),...PRESETS.map(p=>p.id)]){if(id=='all')continue;const q=wheelOf(id);if(q&&key(q)==k)return id}return null}
+const wheelInfo=w=>w?`${w.name}: ${w.clubs.length} club${w.clubs.length==1?'':'s'}, ${w.nations.length} countr${w.nations.length==1?'y':'ies'}`:`All teams: ${allClubs().length} clubs, ${allNats().length} countries`;
+function presetOptions(extra){return'<optgroup label="Built in">'+BUILT.map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('')+'</optgroup>'+(PRESETS.length?'<optgroup label="My presets">'+PRESETS.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')+'</optgroup>':'')+(extra||'')}
+function fillSetupPreset(){const a=$('#preset');a.innerHTML=presetOptions();if(!presetById(PSEL))PSEL='all';a.value=PSEL;$('#presetInfo').textContent=wheelInfo(wheelOf(PSEL))}
+function syncLobPreset(w){const b=$('#lobPreset');if(document.activeElement===b)return;const m=matchPreset(w);b.innerHTML=presetOptions(m==null?`<option value="__room">${esc(w.name)} (this room)</option>`:'');b.value=m==null?'__room':m}
+$('#preset').onchange=()=>{PSEL=$('#preset').value;savePresets();$('#presetInfo').textContent=wheelInfo(wheelOf(PSEL))};
+$('#presetEdit').onclick=()=>showPresets('setup');$('#lobPresetEdit').onclick=()=>showPresets('lobby');
+
+/* the presets page */
+function showPresets(from){PBACK=from;const v=from=='lobby'?$('#lobPreset').value:PSEL;PEDIT=presetById(v)?v:'all';$('#setup').hidden=true;$('#lobby').hidden=true;$('#presets').hidden=false;renderPresets();scrollTo(0,0)}
+function closePresets(){$('#presets').hidden=true;fillSetupPreset();if(PBACK=='lobby'&&OL.id){syncLobPreset(OL.roomWheel);$('#lobby').hidden=false}else $('#setup').hidden=false;scrollTo(0,0)}
+function renderPresets(){const p=presetById(PEDIT),ro=!!p.built;
+ $('#pList').innerHTML=presetOptions();$('#pList').value=PEDIT;$('#pName').value=p.name;$('#pName').disabled=ro;
+ const row=(k,n,on)=>`<label class="chk"><input type="checkbox" data-k="${k}" value="${esc(n)}"${on?' checked':''}${ro?' disabled':''}> ${esc(n)}</label>`;
+ const crow=(k,n,on)=>`<div class="crow"><label class="chk"><input type="checkbox" data-k="${k}" value="${esc(n)}"${on?' checked':''}> ${esc(n)} <i class="tag">added</i></label><button class="alt" type="button" data-rm="${k}" data-name="${esc(n)}" aria-label="Remove ${esc(n)}">×</button></div>`;
+ $('#pClubs').innerHTML=allClubs().map(n=>row('c',n,p.clubs.includes(n))).join('')+p.customClubs.map(n=>crow('c',n,p.clubs.includes(n))).join('');
+ $('#pNats').innerHTML=allNats().map(n=>row('n',n,p.nations.includes(n))).join('')+p.customNations.map(n=>crow('n',n,p.nations.includes(n))).join('');
+ for(const id of['pAddC','pAddCb','pAddN','pAddNb'])$('#'+id).disabled=ro;
+ for(const b of document.querySelectorAll('#presets [data-all],#presets [data-none]'))b.disabled=ro;
+ $('#pDel').hidden=ro;$('#pRo').hidden=!ro;$('#pDup').textContent=ro?'Duplicate to edit':'Duplicate';pCount()}
+function pCount(){const p=presetById(PEDIT),w=wheelOf(PEDIT),c=w?w.clubs.length:allClubs().length,t=w?w.nations.length:allNats().length;
+ $('#pcT').textContent=`Clubs (${c} of ${allClubs().length+p.customClubs.length})`;$('#pnT').textContent=`Countries (${t} of ${allNats().length+p.customNations.length})`;
+ const bad=c+t<2;$('#pMsg').textContent=bad?'Pick at least 2 teams to use this preset.':'';$('#pUse').disabled=bad}
+const editable=()=>PRESETS.find(x=>x.id==PEDIT);
+function addPreset(name,base){if(PRESETS.length>=30){$('#pMsg').textContent='You can keep up to 30 presets. Delete one first.';return}
+ const p={id:'p'+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36),name:name.slice(0,30),clubs:[...base.clubs],nations:[...base.nations],customClubs:[...base.customClubs],customNations:[...base.customNations]};PRESETS.push(p);PEDIT=p.id;savePresets();renderPresets();$('#pName').focus();$('#pName').select()}
+$('#pList').onchange=()=>{PEDIT=$('#pList').value;renderPresets()};
+$('#pNew').onclick=()=>addPreset('My wheel '+(PRESETS.length+1),presetById('all'));
+$('#pDup').onclick=()=>{const b=presetById(PEDIT);addPreset(b.name+' copy',b)};
+$('#pDel').onclick=()=>{const p=editable();if(!p||!confirm('Delete "'+p.name+'"?'))return;PRESETS=PRESETS.filter(x=>x.id!=p.id);if(PSEL==p.id)PSEL='all';PEDIT=PSEL;savePresets();renderPresets()};
+$('#pName').oninput=()=>{const p=editable();if(!p)return;p.name=$('#pName').value.slice(0,30);savePresets();const o=[...$('#pList').options].find(x=>x.value==p.id);if(o)o.textContent=p.name||'My wheel'};
+$('#pName').onchange=()=>{const p=editable();if(p&&!p.name.trim()){p.name='My wheel';savePresets();renderPresets()}};
+$('#pClubs').onchange=$('#pNats').onchange=e=>{const i=e.target.closest('input[data-k]'),p=editable();if(!i||!p)return;const k=i.dataset.k=='c'?'clubs':'nations',st=new Set(p[k]);i.checked?st.add(i.value):st.delete(i.value);p[k]=[...st];savePresets();pCount()};
+$('#presets').addEventListener('click',e=>{const p=editable(),rm=e.target.closest('[data-rm]');
+ if(rm&&p){const c=rm.dataset.rm=='c',nm=rm.dataset.name,ck=c?'customClubs':'customNations',sk=c?'clubs':'nations';p[ck]=p[ck].filter(x=>x!=nm);p[sk]=p[sk].filter(x=>x!=nm);savePresets();renderPresets();return}
+ const b=e.target.closest('[data-all],[data-none]');if(!b||b.disabled||!p)return;const c=(b.dataset.all||b.dataset.none)=='c',k=c?'clubs':'nations';p[k]=b.dataset.all?[...(c?allClubs():allNats()),...(c?p.customClubs:p.customNations)]:[];savePresets();renderPresets()});
+/* add any club or country: no player list is needed, whoever lands on it types the player's name */
+function addTeam(c){const p=editable();if(!p)return;const inp=$(c?'#pAddC':'#pAddN'),nm=inp.value.replace(/[<>]/g,'').replace(/\s+/g,' ').trim().slice(0,24);if(!nm)return;
+ const sk=c?'clubs':'nations',ck=c?'customClubs':'customNations',known=c?allClubs():allNats(),low=nm.toLowerCase(),hit=known.find(x=>x.toLowerCase()==low)||p[ck].find(x=>x.toLowerCase()==low);
+ if(hit){if(!p[sk].includes(hit))p[sk].push(hit);savePresets();inp.value='';renderPresets();$('#pMsg').textContent=hit+' is already in the list, so it is ticked.';return}
+ if(p[ck].length>=CUSTOM_MAX){$('#pMsg').textContent='You can add up to '+CUSTOM_MAX+' '+(c?'clubs':'countries')+' to a preset.';return}
+ p[ck].push(nm);p[sk].push(nm);savePresets();inp.value='';renderPresets();inp.focus()}
+$('#pAddCb').onclick=()=>addTeam(true);$('#pAddNb').onclick=()=>addTeam(false);
+$('#pAddC').addEventListener('keydown',e=>{if(e.key=='Enter'){e.preventDefault();addTeam(true)}});$('#pAddN').addEventListener('keydown',e=>{if(e.key=='Enter'){e.preventDefault();addTeam(false)}});
+$('#pUse').onclick=()=>{if($('#pUse').disabled)return;PSEL=PEDIT;savePresets();closePresets();if(PBACK=='lobby'&&OL.id)setOpt({options:lobOpts(wheelOf(PSEL))})};
+$('#pBack').onclick=closePresets;
+loadPresets();fillSetupPreset();
+
+$('#start').onclick=()=>{
+ S.respins=+$('#rrN').value;S.rrAny=$('#rrAnyOn').checked;S.players=[...document.querySelectorAll('#names input')].map((e,i)=>({name:e.value.trim()||'Player '+(i+1),color:PAL[i],squad:Array(11).fill(null),rr:S.respins,...mk(document.querySelectorAll('#names .pf')[i].value)}));
+ S.src=$('#src').value;S.posOn=$('#posOn').checked;S.snake=$('#snake').checked;S.used=[];S.last=null;S.noRepeat=$('#noRepOn').checked;S.wheel=wheelOf($('#preset').value);$('#setMsg').textContent='';if(pool().length<2){$('#setMsg').textContent='The wheel needs at least 2 teams. Choose a bigger preset or another wheel type.';return}if(S.noRepeat&&pool().length<3){$('#setMsg').textContent='"No repeat in a row" needs at least 3 teams on the wheel.';return}S.t=0;S.cur=null;S.sel=null;S.done=false;S.busy=false;
+ S.order=S.players.map((_,i)=>i);if($('#tossOn').checked)openToss();else begin()};
+function begin(){$('#setup').hidden=true;$('#toss').hidden=true;$('#game').hidden=false;newLabels();S.view=who();render()}
+
+function endUI(){if(!S.done){OL.endHide=false;OL.resShown=false}
+ if(S.online&&S.done&&S.vote&&S.vote.result&&!OL.resShown){OL.resShown=true;OL.endHide=false}/* the result is in: show it once, even if the popup was closed */
+ $('#endModal').hidden=!(S.online&&S.done&&!OL.endHide);$('#voteBtn').hidden=!(S.online&&S.done);
+ if(!$('#endModal').hidden){$('#endMsg').textContent='';$('#newGame').disabled=false;voteUI()}
+ scoreUI()}
+const joinNames=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+/* vote for the best XI, and the scoreboard (kept across New games while the room stays open) */
+function voteUI(){const v=S.vote,P=S.players;if(!v){$('#voteBox').innerHTML='';$('#board').innerHTML='';return}
+ let h='';
+ if(v.result){const w=v.result.winners.map(i=>P[i]);h=`<h3>${w.length>1?'It is a tie: '+esc(joinNames(w.map(x=>x.name))):'Best XI: '+esc(w[0].name)} 🏆</h3><p>${P.map((q,i)=>esc(q.name)+' '+v.result.counts[i]).join(' · ')}</p>`}
+ else{h=`<h3>Vote for the best XI</h3>`+P.map((q,i)=>`<button type="button" class="alt vb${v.mine===i?' on':''}" data-v="${i}" style="border-left:6px solid ${q.color}">${esc(q.name)}${i==S.me?' (you)':''}</button>`).join('')+`<p>${v.cast} of ${v.of} voted${v.mine==null?'':'. You can change your vote until everyone has voted.'}</p>`+(S.host===S.me&&v.cast>0&&v.cast<v.of?'<button type="button" class="alt" id="endVote">Close voting now</button>':'')}
+ $('#voteBox').innerHTML=h;
+ const rows=[...P.keys()].sort((a,b)=>P[b].wins-P[a].wins||a-b);
+ $('#board').innerHTML=P.some(q=>q.wins>0)?`<h3>Scoreboard</h3><table class="board">${rows.map(i=>`<tr><td style="border-left:6px solid ${P[i].color}">${esc(P[i].name)}</td><td>${P[i].wins}</td></tr>`).join('')}</table>`:''}
+function scoreUI(){const e=$('#score'),P=S.players;if(!S.online||!P.some(q=>q.wins>0)){e.hidden=true;return}e.hidden=false;e.textContent='Scoreboard: '+P.map(q=>q.name+' '+q.wins).join(' · ')}
+$('#voteBox').addEventListener('click',async e=>{const b=e.target.closest('[data-v]'),end=e.target.closest('#endVote');if(!b&&!end)return;
+ try{await onState(await post(b?'vote':'endvote',b?{seat:+b.dataset.v}:{}))}catch(err){olErr(err);$('#endMsg').textContent=err.message}});
+$('#voteBtn').onclick=()=>{OL.endHide=false;endUI()};
+/* fix a typo in a pick */
+let ED=null;
+function openEdit(pi,i){const q=S.players[pi];if(!q||!q.squad[i])return;ED={pi,i};$('#edName').value=q.squad[i];$('#edMsg').textContent='';$('#editModal').hidden=false;$('#edName').focus();$('#edName').select()}
+function closeEdit(){$('#editModal').hidden=true;ED=null}
+async function saveEdit(){if(!ED)return;const nm=$('#edName').value.replace(/\s+/g,' ').trim(),q=S.players[ED.pi],old=q.squad[ED.i];
+ if(!nm){$('#edMsg').textContent='Type the name first.';return}
+ if(S.online){try{await onState(await post('rename',{slot:ED.i,name:nm}));closeEdit()}catch(e){if(e.status===404||e.status===403)return olErr(e);$('#edMsg').textContent=e.message}return}
+ if(nm.toLowerCase()!=old.toLowerCase()&&S.players.some(x=>x.squad.some(v=>v&&v.toLowerCase()==nm.toLowerCase()))){$('#edMsg').textContent=nm+' is already drafted. Pick someone else.';return}
+ q.squad[ED.i]=nm;closeEdit();drawPitches()}
+$('#edSave').onclick=saveEdit;$('#edCancel').onclick=closeEdit;
+$('#edName').addEventListener('keydown',e=>{if(e.key=='Enter'){e.preventDefault();saveEdit()}else if(e.key=='Escape')closeEdit()});
+$('#editModal').addEventListener('click',e=>{if(e.target.id=='editModal')closeEdit()});
+function render(){const n=S.players.length;
+ if(S.t>=11*n){S.done=true}
+ endUI();
+ if(!S.done&&S.posOn&&S.cur&&S.cur.pos&&S.sel==null){const q=S.players[who()],j=q.squad.findIndex((v,i)=>!v&&q.slots[i]==S.cur.pos);S.sel=j<0?null:j}
+ const p=S.players[S.done?S.view:who()];
+ drawPitches();
+ if(S.done){$('#bar').innerHTML='Draft complete<small>Final squads are shown side by side.</small>';$('#res').innerHTML='';$('#pick').hidden=true;
+  $('#spinBtn').textContent=S.online?'Leave room':'New draft';$('#spinBtn').disabled=false;$('#spinBtn').hidden=false;autoUI(null,false);
+  if(S.online){const b=$('#autoBtn');b.hidden=false;b.textContent='New game';b.disabled=S.busy}return}
+ const r=Math.floor(S.t/n)+1,c=S.cur,ready0=c&&(!S.posOn||c.pos),mine=!S.online||who()===S.me,ready=ready0&&mine;
+ $('#bar').innerHTML=`<span style="color:${p.color}">${esc(p.name)}</span>${S.online&&mine?' (you)':''} is on the clock<small>Round ${r} of 11. Pick ${S.t%n+1} of ${n} from this spin.${S.online?' Room '+esc(OL.id)+'.'+(S.t==0&&S.toss?' '+esc(S.players[S.order[0]].name)+' won the toss.':''):''}</small>`;
+ if(!c)setWheel(S.labs.map(x=>x.n));
+ $('#res').innerHTML=c?`<b>${esc(c.n)}</b><span>${c.k=='club'?'Club':'Country'}${c.pos?(mine?'. You need a ':'. '+esc(p.name)+' needs a ')+c.pos+'.':''}</span>`:`<span>${mine?'Spin to find out which club or country you draft from.':'Waiting for '+esc(p.name)+' to spin the wheel.'}</span>`;
+ $('#spinBtn').hidden=!!ready0||!mine;$('#spinBtn').disabled=S.busy;
+ $('#spinBtn').textContent=!c?'Spin the club or country wheel':'Spin the position wheel';
+ autoUI(p,mine);
+ $('#pick').hidden=!ready;
+ if(ready){const list=[];
+  const types=S.posOn?[c.pos]:open(p);$('#slot').innerHTML=types.map(t=>`<option>${t}</option>`).join('');
+  $('#pn').value='';$('#msg').textContent='';plist(list,p,c);
+  const rrOk=S.rrAny||S.t%n==0;$('#reroll').hidden=!(S.respins>0);$('#reroll').textContent=p.rr<1?'No re-spins left':!rrOk?'Re-spin (first pick of a round only)':`Re-spin (${p.rr} left)`;$('#reroll').disabled=p.rr<1||!rrOk}}
+
+$('#spinBtn').onclick=async()=>{
+ if(S.online){if(S.done)return leaveRoom();return olSpin()}
+ if(S.done){S.done=false;$('#game').hidden=true;$('#setup').hidden=false;return}
+ if(S.busy)return;S.busy=true;$('#spinBtn').disabled=true;const p=S.players[who()];
+ if(!S.cur){const i=await spin();S.cur={...S.labs[i]};S.last={n:S.cur.n,k:S.cur.k};S.used.push({n:S.cur.n,k:S.cur.k});if(S.posOn&&open(p).length==1)S.cur.pos=open(p)[0]}
+ else if(S.posOn&&!S.cur.pos){const o=open(p);setWheel(o.length>1?o:[...o,...o]);const i=await spin();S.cur.pos=W.labels[i]}
+ S.busy=false;render()};
+
+$('#reroll').onclick=()=>{if(S.online)return olReroll();const p=S.players[who()];if(p.rr<1||(!S.rrAny&&S.t%S.players.length))return;p.rr--;S.cur=null;S.sel=null;newLabels();render()};
+
+
+/* first-pick toss */
+let TS={};
+const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+function openToss(){const P=S.players,n=P.length;TS={done:false,busy:false,ang:0};
+ $('#setup').hidden=true;$('#game').hidden=true;$('#toss').hidden=false;$('#tossRes').innerHTML='';
+ $('#tossSkip').hidden=false;$('#tossSkip').textContent='Skip, '+P[0].name+' starts';
+ if(n==2){const f=(q,l)=>`<div class="face" style="background:${q.color}${l?';transform:rotateY(180deg)':''}"><b>${esc(ini(q.name))}</b><small>${esc(q.name)}</small><em>${l?'TAILS':'HEADS'}</em></div>`;
+  $('#tossHint').textContent=P[0].name+' is heads and '+P[1].name+' is tails. Flip to decide who drafts first.';
+  $('#tossStage').innerHTML=`<div class="coinwrap" id="cw"><div class="coin" id="coin">${f(P[0],0)}${f(P[1],1)}</div></div>`;$('#tossBtn').textContent='Flip the coin'}
+ else{$('#tossHint').textContent='Spin the wheel. The name it lands on gets the first pick, and the rest follow in order.';
+  $('#tossStage').innerHTML='<div class="wrap"><div class="ptr"></div><canvas id="tw" width="460" height="460" aria-label="First pick wheel"></canvas></div>';twDraw();$('#tossBtn').textContent='Spin the wheel'}
+ $('#tossBtn').disabled=false}
+function twDraw(){const c=$('#tw'),x=c.getContext('2d'),P=S.players,N=P.length,s=c.width,R=s/2-8,a=2*Math.PI/N,L=[];
+ const reps=Math.ceil(12/N),M=N*reps,b=2*Math.PI/M;x.clearRect(0,0,s,s);x.save();x.translate(s/2,s/2);x.rotate(TS.ang);
+ for(let i=0;i<M;i++){const q=P[i%N];x.beginPath();x.moveTo(0,0);x.arc(0,0,R,i*b,(i+1)*b);x.closePath();x.fillStyle=q.color;x.fill();x.strokeStyle='#fffdf4';x.lineWidth=2;x.stroke();
+  x.save();x.rotate(i*b+b/2);x.fillStyle='#fff';x.font='700 '+(M>8?18:24)+'px "Archivo Narrow",sans-serif';x.textAlign='right';x.textBaseline='middle';x.fillText(q.name.length>12?q.name.slice(0,11)+'…':q.name,R-14,0);x.restore()}
+ x.restore();x.beginPath();x.arc(s/2,s/2,22,0,7);x.fillStyle='#e8b923';x.fill();x.strokeStyle='#fffdf4';x.lineWidth=4;x.stroke()}
+function twSpin(){return new Promise(res=>{const N=S.players.length,reps=Math.ceil(12/N),M=N*reps,b=2*Math.PI/M,st=TS.ang,d=Math.PI*2*(5+Math.random()*3)+Math.random()*Math.PI*2,dur=reduced()?400:4600,t0=performance.now();
+ (function f(now){const p=Math.min(1,(now-t0)/dur);TS.ang=st+d*(1-Math.pow(1-p,3));twDraw();
+  if(p<1)requestAnimationFrame(f);else{const rel=(((-Math.PI/2-TS.ang)%(2*Math.PI))+2*Math.PI)%(2*Math.PI);res(Math.floor(rel/b)%N)}})(t0)})}
+function coinFlip(){return new Promise(res=>{const win=Math.random()<.5?0:1,coin=$('#coin'),cw=$('#cw'),dur=reduced()?400:2600;
+ const deg=360*(5+Math.floor(Math.random()*3))+(win?180:0);
+ coin.style.transition=`transform ${dur}ms cubic-bezier(.2,.7,.2,1)`;cw.classList.add('fly');
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{coin.style.transform=`rotateY(${deg}deg)`}));
+ setTimeout(()=>res(win),dur+120)})}
+function confetti(){if(reduced())return;const b=$('#toss');for(let i=0;i<36;i++){const e=document.createElement('i');e.className='cf';e.style.left=Math.random()*100+'%';e.style.background=[...PAL,'#e8b923'][i%7];e.style.animationDelay=Math.random()*.5+'s';b.appendChild(e);setTimeout(()=>e.remove(),3200)}}
+function finishToss(win){const P=S.players,n=P.length;S.order=Array.from({length:n},(_,i)=>(win+i)%n);TS.done=true;TS.busy=false;
+ $('#tossRes').innerHTML=`<b style="color:${P[win].color}">${esc(P[win].name)} picks first</b><span>Order: ${S.order.map(i=>esc(P[i].name)).join(' \u2192 ')}${S.snake?'. The order reverses each round.':''}</span>`;
+ $('#tossBtn').textContent='Start the draft';$('#tossBtn').disabled=false;$('#tossSkip').hidden=true;confetti()}
+$('#tossBtn').onclick=async()=>{if(TS.done){begin();return}if(TS.busy)return;TS.busy=true;$('#tossBtn').disabled=true;$('#tossSkip').hidden=true;
+ const win=S.players.length==2?await coinFlip():await twSpin();finishToss(win)};
+$('#tossSkip').onclick=()=>{if(!TS.busy){S.order=S.players.map((_,i)=>i);begin()}};
+
+function ini(n){return n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}
+function av(n){let h=0;for(const ch of n)h=(h*31+ch.charCodeAt(0))%360;return `<span class="av" style="background:hsl(${h} 45% 38%)">${esc(ini(n))}</span>`}
+function plist(list,p,c){S.pl=[list,p,c];const t=S.sel!=null?p.slots[S.sel]:null;
+ $('#plist').innerHTML=t?`<p class="hint">Type the name of any ${esc(c.n)} player for your ${t} spot.</p><div id="prev"></div>`:`<p class="hint">Tap an empty position on your pitch, then type the name of a ${esc(c.n)} player.</p>`;prev()}
+function prev(){const n=$('#pn').value.trim(),e=$('#prev');if(e)e.innerHTML=n?`<div class="pv">${av(n)}<b>${esc(n)}</b></div>`:''}
+$('#pn').addEventListener('input',prev);
+function place(nm){const p=S.players[who()];nm=nm.trim().replace(/\s+/g,' ');
+ if(S.sel==null){$('#msg').textContent='Tap an empty position on your pitch first.';return}
+ if(!nm){$('#msg').textContent='Choose a player or type a name.';return}
+ if(S.online)return olPick(nm);
+ if(S.players.some(q=>q.squad.some(v=>v&&v.toLowerCase()==nm.toLowerCase()))){$('#msg').textContent=nm+' is already drafted. Pick someone else.';return}
+ p.squad[S.sel]=nm;S.t++;S.cur=S.t%S.players.length?{n:S.cur.n,k:S.cur.k}:null;S.sel=null;newLabels();S.view=S.t>=11*S.players.length?0:who();render()}
+$('#add').onclick=()=>place($('#pn').value);
+$('#pitch').addEventListener('click',e=>{const ed=e.target.closest('.ed');if(ed){openEdit(+ed.dataset.p,+ed.dataset.i);return}const b=e.target.closest('.sl.open');if(b){S.sel=+b.dataset.i;render()}});
+function drawPitches(){const n=S.players.length;$('#pitch').style.setProperty('--n',n<=3?n:Math.ceil(n/2));$('#pitch').innerHTML=S.players.map(q=>pitch(q)).join('')}
+function slot(p,i){const SLOTS=p.slots,v=p.squad[i];const act=!v&&!S.done&&S.cur&&(!S.posOn||S.cur.pos)&&p===S.players[who()]&&(!S.online||who()===S.me)&&(!S.posOn||SLOTS[i]==S.cur.pos);if(act)return `<button type="button" class="sl open${S.sel==i?' on':''}" data-i="${i}" aria-label="Fill ${SLOTS[i]}"><div class="dot">${SLOTS[i]}</div><span>${S.sel==i?'Selected':'Tap'}</span></button>`;const ed=v&&v!='Skipped'&&(!S.online||p===S.players[S.me])?`<button type="button" class="ed" data-p="${S.players.indexOf(p)}" data-i="${i}" aria-label="Fix the name ${esc(v)}" title="Fix a typo">✎</button>`:'';return `<div class="sl"><div class="dot ${v?'f':''}" style="${v?'background:'+p.color:''}">${SLOTS[i]}</div><span>${v?esc(v):''}</span>${ed}</div>`}
+function pitch(p){const row=a=>`<div class="row">${a.map(i=>slot(p,i)).join('')}</div>`;
+ const on=!S.done&&p===S.players[who()];return `<div class="pcol${on?' turn':''}"><div class="phd" style="--c:${p.color}"><b>${esc(p.name)}</b><span>${p.f} (${p.squad.filter(Boolean).length}/11)</span></div><div class="pitch" role="group" aria-label="${esc(p.name)} squad">${p.rows.map(row).join('')}</div></div>`}
+
+const API=String(window.SPIN_API||'').replace(/\/+$/,'');/* empty = same site (Vercel serves the game and /api together) */
+const HAS_API=/^https?:$/.test(location.protocol)||!!API;/* false only when the file is opened straight from disk */
+
+/* ---------- online rooms (the server in backend/ is the referee; this is the client) ---------- */
+const OL={id:null,token:null,ver:null,timer:null,spinSeen:null,chain:Promise.resolve(),key:'',lastT:-1,phase:null,fails:0};
+const SESS='sd_room';
+const getSess=()=>{try{return JSON.parse(localStorage.getItem(SESS)||'null')}catch(e){return null}};
+const saveSess=()=>{try{localStorage.setItem(SESS,JSON.stringify({id:OL.id,token:OL.token}))}catch(e){}};
+const clearSess=()=>{try{localStorage.removeItem(SESS)}catch(e){}};
+async function olApi(method,path,body,hdr){
+ const c=new AbortController(),t=setTimeout(()=>c.abort(),30000);
+ try{const r=await fetch(API+'/api/rooms'+path,{method,signal:c.signal,headers:{...(body?{'Content-Type':'application/json'}:{}),...(hdr||{})},body:body?JSON.stringify(body):undefined});
+  let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok)throw Object.assign(new Error(j.error||'Server error '+r.status),{status:r.status});
+  return j}
+ catch(e){if(e.status!==undefined)throw e;
+  throw Object.assign(new Error(e.name=='AbortError'?'The server took too long to answer.':'Cannot reach the server.'),{status:0})}
+ finally{clearTimeout(t)}}
+const post=(act,extra)=>olApi('POST','/'+OL.id+'/'+act,{token:OL.token,...extra});
+function setConn(msg){const e=$('#conn');e.hidden=!msg;e.textContent=msg||''}
+function olErr(e){if(e.status===404||e.status===403)return leaveLocal('This room is closed or you are no longer in it.');setConn(e.message);$('#endMsg').textContent=e.message;$('#msg').textContent=e.message;$('#lobMsg').textContent=e.message;setTimeout(()=>{if($('#conn').textContent==e.message)setConn('')},5000)}
+
+/* entering and leaving */
+if(!HAS_API){$('#onBox').hidden=true;$('#onHint').textContent='Online rooms need the game server. Ask whoever hosts this game to connect it.'}
+/* offline: the single-device game works from the cached page; online rooms need a connection */
+const ON_HINT=$('#onHint').textContent,OFF_HINT='You are offline. Online rooms are not available until you are connected again. The single-device game above still works.';
+function netState(){const off=!navigator.onLine;$('#offMsg').hidden=!off;$('#appbar').hidden=$('#offMsg').hidden&&$('#install').hidden;
+ if(!HAS_API)return;$('#onCreate').disabled=$('#onJoin').disabled=off;$('#onHint').textContent=off?OFF_HINT:ON_HINT}
+addEventListener('online',netState);addEventListener('offline',netState);
+try{$('#onName').value=localStorage.getItem('sd_name')||''}catch(e){}
+{const q=new URLSearchParams(location.search).get('room');if(q)$('#onCode').value=q.toUpperCase().replace(/[^A-Z0-9]/g,'')}
+async function enterRoom(mode){const name=$('#onName').value.trim(),code=$('#onCode').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');const msg=$('#olmsg');msg.textContent='';if(!navigator.onLine){msg.style.color='var(--red)';msg.textContent='You are offline. Online rooms need an internet connection.';return}
+ if(mode=='join'&&!code){msg.textContent='Type the room code first.';return}
+ try{localStorage.setItem('sd_name',name)}catch(e){}
+ $('#onCreate').disabled=$('#onJoin').disabled=true;msg.style.color='var(--mut)';msg.textContent=mode=='create'?'Creating the room...':'Joining...';
+ try{const sv=getSess();
+  const j=mode=='create'?await olApi('POST','',{name}):await olApi('POST','/'+encodeURIComponent(code)+'/join',{name,token:sv&&sv.id==code?sv.token:undefined});
+  OL.id=j.room;OL.token=j.token;saveSess();msg.textContent='';startOnline(j.state);
+  if(mode=='create'){const w=wheelOf(PSEL);if(w)post('settings',{options:{wheel:w}}).then(onState).catch(()=>{})}}
+ catch(e){msg.style.color='var(--red)';msg.textContent=e.message}
+ finally{netState()}}
+$('#onCreate').onclick=()=>enterRoom('create');$('#onJoin').onclick=()=>enterRoom('join');
+$('#onCode').addEventListener('keydown',e=>{if(e.key=='Enter')enterRoom('join')});
+function startOnline(st){OL.ver=null;OL.spinSeen=null;OL.phase=null;OL.key='';OL.lastT=-1;OL.chain=Promise.resolve();S.online=true;S.busy=false;S.sel=null;S.cur=null;
+ $('#setup').hidden=true;$('#toss').hidden=true;onState(st);olPoll()}
+function leaveLocal(note,keep){$('#editModal').hidden=true;$('#presets').hidden=true;OL.roomWheel=null;fillSetupPreset();$('#endModal').hidden=true;OL.endHide=false;clearTimeout(OL.timer);const id=OL.id;OL.id=null;if(!keep)clearSess();S.online=false;S.done=false;S.busy=false;OL.phase=null;
+ $('#game').hidden=true;$('#lobby').hidden=true;$('#toss').hidden=true;$('#setup').hidden=false;$('#spinBtn').hidden=false;$('#autoBtn').hidden=true;$('#gameLeave').hidden=true;setConn('');
+ if(keep&&id)$('#onCode').value=id;const m=$('#olmsg');m.style.color='var(--red)';m.textContent=note||''}
+async function leaveRoom(){const id=OL.id;try{await post('leave')}catch(e){}leaveLocal();if(id)$('#onCode').value=id}
+/* closing the tab/app or navigating away leaves the room, which closes it for everyone.
+   keepalive lets the request finish while the page is going away. A page restored from the back/forward cache
+   (persisted) is not leaving, so it is ignored. If the app is killed with no chance to send this, the server
+   closes the room itself after 60 s of silence. */
+function leaveOnExit(e){if(e&&e.persisted)return;if(!OL.id||!OL.token)return;const id=OL.id,tok=OL.token;
+ try{fetch(API+'/api/rooms/'+id+'/leave',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},body:JSON.stringify({token:tok})})}catch(x){}
+ clearSess()}
+addEventListener('pagehide',leaveOnExit);
+$('#lobLeave').onclick=leaveRoom;
+$('#gameLeave').onclick=()=>{if(confirm('Leave the room? The room closes when every player has left.'))leaveRoom()};
+
+/* polling: cheap, one small request a second; the server answers {unchanged:true} when nothing happened */
+function olPoll(){clearTimeout(OL.timer);if(!OL.id)return;const id=OL.id;
+ olApi('GET','/'+id+(OL.ver!=null?'?since='+OL.ver:''),null,{'X-Room-Token':OL.token}).then(st=>{if(OL.id!=id)return;OL.fails=0;if(!st.unchanged)onState(st);else if($('#conn').textContent=='Reconnecting...')setConn('')})
+  .catch(e=>{if(OL.id!=id)return;if(e.status===404||e.status===403)return leaveLocal('This room is closed or you are no longer in it.');OL.fails++;setConn('Reconnecting...')})
+  .finally(()=>{if(OL.id==id)OL.timer=setTimeout(olPoll,document.hidden?3000:1000)})}
+
+/* state arrives from polls and from our own actions; apply in order, newest only */
+function onState(st){if(OL.ver!=null&&st.version<=OL.ver)return OL.chain;OL.ver=st.version;
+ OL.chain=OL.chain.then(()=>showState(st)).catch(e=>console.error(e));return OL.chain}
+async function showState(st){if(!OL.id)return;
+ if(st.phase=='lobby'){$('#endModal').hidden=true;$('#editModal').hidden=true;if(OL.phase!='lobby'){$('#game').hidden=true;$('#lobby').hidden=false;OL.phase='lobby';OL.key=''}renderLobby(st);return}
+ if(OL.phase!='game'){$('#lobby').hidden=true;$('#game').hidden=false;OL.phase='game';$('#gameLeave').hidden=false}
+ const sp=st.spin;
+ if(sp){if(OL.spinSeen===null)OL.spinSeen=sp.id;else if(sp.id>OL.spinSeen){OL.spinSeen=sp.id;await animateSpin(sp)}}else if(OL.spinSeen===null)OL.spinSeen=0;
+ if(!OL.id)return;syncS(st);
+ const key=JSON.stringify([st.phase,st.t,st.cur&&[st.cur.n,st.cur.pos],st.players.map(p=>[p.name,p.formation,p.rr,p.squad,p.wins,p.voted,p.left]),st.order,st.options,st.labs,st.vote]);
+ if(key!==OL.key){OL.key=key;render()}
+ else if(!S.done)autoUI(S.players[who()],who()===S.me);/* presence changed: only the skip button can differ */
+ const away=st.players.filter(p=>p.seat!=st.me&&!p.connected&&!p.left).map(p=>p.name),gone=st.players.filter(p=>p.seat!=st.me&&p.left).map(p=>p.name);
+ if(!$('#conn').textContent||/^Away:|^Left:|^$/.test($('#conn').textContent))setConn([away.length?'Away: '+away.join(', '):'',gone.length?'Left: '+gone.join(', '):''].filter(Boolean).join('. '))}
+function syncS(st){const o=st.options;S.online=true;S.me=st.me;S.host=st.host;S.src=o.src;S.posOn=o.posOn;S.snake=o.snake;S.toss=o.toss;S.noRepeat=!!o.noRepeat;S.respins=Number.isInteger(o.respins)?o.respins:1;S.rrAny=!!o.rrAny;S.wheel=o.wheel||null;S.vote=st.vote||null;
+ S.players=st.players.map(p=>({name:p.name,color:p.color,squad:p.squad,rr:p.rr,f:p.formation,slots:p.slots,rows:mk(p.formation).rows,conn:p.connected,wins:p.wins||0,voted:!!p.voted}));
+ S.order=st.order;S.t=st.t;S.done=st.phase=='done';S.cur=st.cur;S.labs=(st.labs||[]).map(n=>({n}));S.busy=false;S.view=0;
+ if(S.t!==OL.lastT){S.sel=null;OL.lastT=S.t}}
+function animateSpin(sp){return new Promise(res=>{let done=false;const fin=()=>{if(!done){done=true;res()}};
+ setWheel(sp.labels);const N=sp.labels.length,a=2*Math.PI/N,st0=ang,target=-Math.PI/2-(sp.index+.5)*a,
+  delta=(((target-st0)%(2*Math.PI))+2*Math.PI)%(2*Math.PI),d=Math.PI*2*(5+Math.floor(Math.random()*3))+delta,dur=reduced()?400:4200,t0=performance.now();
+ setTimeout(()=>{ang=st0+d;draw();fin()},dur+400);/* background tabs pause animation frames: never get stuck */
+ (function f(now){if(done)return;const p=Math.min(1,(now-t0)/dur);ang=st0+d*(1-Math.pow(1-p,3));draw();if(p<1)requestAnimationFrame(f);else fin()})(t0)})}
+
+/* actions in the game */
+function autoUI(p,mine){const b=$('#autoBtn');/* only the host, only for a player who is away: skip their turn so the draft can go on */
+ if(!S.online||S.done||!p||mine||S.host!==S.me||p.conn){b.hidden=true;return}
+ b.hidden=false;b.textContent='Skip '+p.name+"'s turn (away)";b.disabled=S.busy}
+async function olAct(act,extra,btn){if(S.busy)return;S.busy=true;if(btn)btn.disabled=true;
+ try{await onState(await post(act,extra));if(btn&&btn.id=='add')btn.disabled=false}catch(e){S.busy=false;if(btn)btn.disabled=false;olErr(e)}}
+const olSpin=()=>olAct('spin',{},$('#spinBtn')),olReroll=()=>olAct('reroll',{},$('#reroll')),olPick=nm=>olAct('pick',{slot:S.sel,name:nm},$('#add'));
+$('#autoBtn').onclick=()=>S.done?olNewGame():olAct('skip',{},$('#autoBtn'));
+const olNewGame=()=>olAct('rematch',{},$('#newGame'));
+$('#newGame').onclick=olNewGame;$('#endClose').onclick=()=>{OL.endHide=true;$('#endModal').hidden=true};
+
+/* lobby */
+function renderLobby(st){const me=st.players[st.me],host=st.host===st.me;
+ $('#lobCode').textContent=st.id;
+ lobFriends(AC.me);$('#lobPlayers').innerHTML=st.players.map(p=>`<div class="lp"><i style="background:${p.color}"></i><b>${esc(p.name)}</b><small>${p.seat==st.host?'host':''}${p.seat==st.me?' you':''}</small><small>${p.formation}</small><i class="${p.connected?'on':'off'}" title="${p.connected?'here':'away'}"></i>${host&&p.seat!=st.me?`<button class="alt" data-k="${p.seat}">Remove</button>`:''}</div>`).join('');
+ const F=$('#lobForm');if(!F.options.length)F.innerHTML=st.forms.map(f=>`<option>${f}</option>`).join('');
+ const sync=(el,v,chk)=>{if(document.activeElement!==el){if(chk)el.checked=v;else el.value=v}};
+ sync($('#lobName'),me.name);sync(F,me.formation);
+ $('#lobHost').hidden=!host;const o=st.options;
+ sync($('#lobSrc'),o.src);sync($('#lobPos'),o.posOn,1);sync($('#lobToss'),o.toss,1);sync($('#lobSnake'),o.snake,1);sync($('#lobNoRep'),o.noRepeat,1);sync($('#lobRR'),String(Number.isInteger(o.respins)?o.respins:1));sync($('#lobRRAny'),!!o.rrAny,1);OL.roomWheel=o.wheel||null;syncLobPreset(OL.roomWheel);$('#lobWheel').textContent='Wheel: '+wheelInfo(OL.roomWheel);
+ for(const id of['lobSrc','lobPreset','lobPresetEdit','lobPos','lobToss','lobSnake','lobNoRep','lobRR','lobRRAny'])$('#'+id).disabled=!host;
+ const b=$('#lobStart');b.hidden=false;b.disabled=!host||st.players.length<2;
+ b.textContent=!host?'Waiting for the host to start...':st.players.length<2?'Waiting for another player...':'Start the draft ('+st.players.length+' players)'}
+$('#lobPlayers').onclick=async e=>{const k=e.target.closest('button[data-k]');if(k)try{await onState(await post('kick',{seat:+k.dataset.k}))}catch(x){olErr(x)}};
+const setOpt=async b=>{try{await onState(await post('settings',b))}catch(e){olErr(e);$('#lobPreset').blur();syncLobPreset(OL.roomWheel)}};
+$('#lobName').onchange=()=>setOpt({name:$('#lobName').value});$('#lobForm').onchange=()=>setOpt({formation:$('#lobForm').value});
+const lobOpts=w=>({src:$('#lobSrc').value,posOn:$('#lobPos').checked,toss:$('#lobToss').checked,snake:$('#lobSnake').checked,noRepeat:$('#lobNoRep').checked,respins:+$('#lobRR').value,rrAny:$('#lobRRAny').checked,wheel:w===undefined?wheelOf($('#lobPreset').value):w});
+for(const id of['lobSrc','lobPreset','lobPos','lobToss','lobSnake','lobNoRep','lobRR','lobRRAny'])$('#'+id).onchange=()=>setOpt({options:lobOpts()});
+$('#lobStart').onclick=async()=>{$('#lobMsg').textContent='';try{await onState(await post('start'))}catch(e){olErr(e)}};
+async function copy(t,ok){let done=false;
+ try{await navigator.clipboard.writeText(t);done=true}
+ catch(e){try{const a=document.createElement('textarea');a.value=t;a.setAttribute('readonly','');a.style.cssText='position:fixed;top:0;opacity:0';document.body.appendChild(a);a.select();done=document.execCommand('copy');a.remove()}catch(x){}}
+ toast(done?ok:'Could not copy. Select the code above and copy it by hand.',!done)}
+$('#lobCopy').onclick=()=>copy(OL.id,'Code copied: '+OL.id);
+const CAN_SHARE=!!navigator.share&&matchMedia('(pointer:coarse)').matches;
+$('#lobLink').onclick=async()=>{const url=location.origin+location.pathname+'?room='+OL.id;
+ if(CAN_SHARE){try{await navigator.share({title:'Spin Draft XI',text:'Join my Spin Draft XI room '+OL.id,url});return}catch(e){if(e.name=='AbortError')return}}
+ copy(url,'Invite link copied. Send it to your friends.')};
+
+
+/* ---------- accounts, friends and room invites (server: /api/account/...) ---------- */
+const AUTH='sd_auth',AC={tok:null,me:null,timer:null,busy:false,sent:new Set(),lobKey:'',mode:'login',seenInv:null,seenReq:null};
+try{AC.tok=localStorage.getItem(AUTH)}catch(e){}
+async function acApi(method,path,body){
+ try{const r=await fetch(API+'/api/account'+path,{method,headers:{...(body?{'Content-Type':'application/json'}:{}),...(AC.tok?{Authorization:'Bearer '+AC.tok}:{})},body:body?JSON.stringify(body):undefined});
+  let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok)throw Object.assign(new Error(j.error||'Server error '+r.status),{status:r.status});return j}
+ catch(e){if(e.status!==undefined)throw e;throw Object.assign(new Error('Cannot reach the server.'),{status:0})}}
+/* small message bubble; optional action button (used for invites) */
+let toastT=null;
+function toast(msg,bad,ms,label,fn){const t=$('#toast');t.className=bad?'bad':'';t.innerHTML='<span></span>';t.firstChild.textContent=msg;
+ if(label){const b=document.createElement('button');b.type='button';b.textContent=label;b.onclick=()=>{t.hidden=true;fn()};t.appendChild(b)}
+ t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},ms||(bad?6000:3500))}
+const hue=n=>[...n].reduce((h,c)=>(h*31+c.charCodeAt(0))%360,7);
+const avatar=n=>`<span class="av" style="background:hsl(${hue(n)} 42% 30%)" aria-hidden="true">${esc(n.slice(0,2).toUpperCase())}</span>`;
+const row=(n,sub,btns,hot)=>`<div class="lp${hot?' hot':''}">${avatar(n)}<div class="who"><b>${esc(n)}</b>${sub?`<small>${sub}</small>`:''}</div>${btns}</div>`;
+function setMode(m){AC.mode=m;const reg=m=='reg';$('#tabLogin').setAttribute('aria-selected',!reg);$('#tabReg').setAttribute('aria-selected',reg);
+ $('#acSubmit').textContent=reg?'Create account':'Log in';$('#acPass').autocomplete=reg?'new-password':'current-password';
+ $('#acUH').textContent=reg?'3 to 20 characters: letters, numbers or _ (saved in lowercase)':'';$('#acPH').textContent=reg?'At least 8 characters':'';$('#acUH').className=$('#acPH').className='fh'}
+function acSet(tok,me){AC.tok=tok;try{tok?localStorage.setItem(AUTH,tok):localStorage.removeItem(AUTH)}catch(e){}
+ AC.me=me||null;AC.sent.clear();AC.lobKey='';AC.seenInv=AC.seenReq=null;$('#acOut').hidden=!!me;$('#acIn').hidden=!me;
+ clearInterval(AC.timer);AC.timer=null;document.title='Spin Draft XI';
+ if(me){acRender(me);AC.timer=setInterval(acPoll,6000)}else lobFriends(null)}
+async function acPoll(){if(!AC.tok||AC.busy||document.hidden||!navigator.onLine)return;AC.busy=true;
+ try{const j=await acApi('GET','/me');AC.me=j.me;acRender(j.me)}catch(e){if(e.status===401){acSet(null,null);toast('You were logged out. Please log in again.',1)}}finally{AC.busy=false}}
+async function joinInvite(i){$('#onCode').value=i.room;if(!$('#onName').value.trim())$('#onName').value=AC.me.username;scrollTo({top:0,behavior:'smooth'});
+ await enterRoom('join');if(OL.id===i.room)acDo('/invite-dismiss',{id:i.id});else toast($('#olmsg').textContent||'Could not join that room.',1)}
+/* tell the player when something new arrives while they are on the home screen */
+function acNotify(me){const inv=new Set(me.invites.map(i=>i.id)),req=new Set(me.incoming);
+ if(AC.seenInv){const n=me.invites.find(i=>!AC.seenInv.has(i.id));if(n&&!OL.id)toast(n.from+' invited you to a room',0,15000,'Join',()=>joinInvite(n));
+  else{const r=me.incoming.find(u=>!AC.seenReq.has(u));if(r)toast(r+' sent you a friend request')}}
+ AC.seenInv=inv;AC.seenReq=req}
+function acRender(me){acNotify(me);
+ const pend=me.invites.length+me.incoming.length;document.title=(pend?'('+pend+') ':'')+'Spin Draft XI';
+ $('#acMe').textContent=me.username;$('#acAv').innerHTML=avatar(me.username);
+ $('#acInv').innerHTML=me.invites.map(i=>row(i.from,'invited you to room <b style="display:inline">'+esc(i.room)+'</b>',`<button type="button" data-ij="${esc(i.id)}">Join</button><button class="alt" type="button" data-di="${esc(i.id)}" aria-label="Dismiss invite from ${esc(i.from)}">Not now</button>`,1)).join('');
+ $('#acReq').innerHTML=me.incoming.map(u=>row(u,'wants to be your friend',`<button type="button" data-ac="${esc(u)}">Accept</button><button class="alt" type="button" data-dc="${esc(u)}">Decline</button>`,1)).join('')
+  +me.outgoing.map(u=>row(u,'waiting for them to accept',`<button class="alt" type="button" data-dc="${esc(u)}">Cancel</button>`)).join('');
+ $('#acCount').hidden=!me.friends.length;$('#acCount').textContent=me.friends.length;
+ $('#acFr').innerHTML=me.friends.length?me.friends.map(u=>row(u,'',`<button class="alt" type="button" data-rm="${esc(u)}" aria-label="Remove ${esc(u)}">Remove</button>`)).join(''):'<div class="empty">No friends yet.<br>Type a username above and send a request.</div>';
+ lobFriends(me)}
+/* friends you can invite, shown in the lobby of the room you are in */
+function lobFriends(me){const el=$('#lobInv');if(!el)return;
+ const key=OL.id+'|'+(me?me.friends.join(','):'-')+'|'+[...AC.sent].join(',');if(key===AC.lobKey)return;AC.lobKey=key;
+ if(!me||!OL.id){el.innerHTML='';return}
+ el.innerHTML='<div class="sec">Invite a friend</div>'+(me.friends.length?me.friends.map(u=>{const d=AC.sent.has(OL.id+'|'+u);return row(u,d?'invite sent':'',`<button class="${d?'alt':''}" type="button" data-iv="${esc(u)}"${d?' disabled':''}>${d?'Invited':'Invite'}</button>`)}).join(''):'<div class="empty">Add friends on the home screen to invite them here.</div>')}
+async function acDo(path,body){try{const j=await acApi('POST',path,body);if(j.me){AC.me=j.me;acRender(j.me)}return j}catch(e){toast(e.message,1);if(e.status===401)acSet(null,null)}}
+/* log in / create account */
+function fieldErr(id,hid,msg){$(hid).textContent=msg;$(hid).className='fh bad';$(id).focus()}
+async function acAuth(){const username=$('#acUser').value.trim().toLowerCase(),password=$('#acPass').value,reg=AC.mode=='reg';
+ $('#acUH').className=$('#acPH').className='fh';
+ if(!navigator.onLine)return toast('You are offline.',1);
+ if(!username)return fieldErr('#acUser','#acUH','Type your username.');
+ if(reg&&!/^[a-z0-9_]{3,20}$/.test(username))return fieldErr('#acUser','#acUH','3 to 20 characters: letters, numbers or _ only.');
+ if(!password)return fieldErr('#acPass','#acPH','Type your password.');
+ if(reg&&password.length<8)return fieldErr('#acPass','#acPH','Use at least 8 characters.');
+ const b=$('#acSubmit');b.disabled=true;b.textContent='Please wait...';
+ try{const j=await acApi('POST',reg?'/register':'/login',{username,password});
+  $('#acPass').value='';acSet(j.token,j.me);try{localStorage.setItem('sd_name',j.me.username)}catch(e){}$('#onName').value=j.me.username;
+  toast(reg?'Welcome, '+j.me.username+'! Your account is ready.':'Welcome back, '+j.me.username+'.')}
+ catch(e){e.status===401?fieldErr('#acPass','#acPH',e.message):e.status===409?fieldErr('#acUser','#acUH',e.message):toast(e.message,1)}
+ finally{b.disabled=false;b.textContent=reg?'Create account':'Log in'}}
+$('#tabLogin').onclick=()=>setMode('login');$('#tabReg').onclick=()=>setMode('reg');
+$('#acSubmit').onclick=acAuth;
+$('#acUser').addEventListener('keydown',e=>{if(e.key=='Enter'){e.preventDefault();$('#acPass').focus()}});
+$('#acPass').addEventListener('keydown',e=>{if(e.key=='Enter')acAuth()});
+$('#acEye').onclick=()=>{const p=$('#acPass'),show=p.type=='password';p.type=show?'text':'password';$('#acEye').textContent=show?'Hide':'Show';$('#acEye').setAttribute('aria-pressed',show)};
+$('#acLogout').onclick=()=>{acApi('POST','/logout',{}).catch(()=>{});acSet(null,null);toast('Logged out.')};
+$('#acAddB').onclick=async()=>{const u=$('#acAdd').value.trim().toLowerCase();if(!u)return $('#acAdd').focus();const b=$('#acAddB');b.disabled=true;
+ const j=await acDo('/friend-request',{username:u});b.disabled=false;
+ if(j){$('#acAdd').value='';toast(j.status=='friends'?'You and '+u+' are now friends.':'Request sent to '+u+'.')}};
+$('#acAdd').addEventListener('keydown',e=>{if(e.key=='Enter')$('#acAddB').click()});
+$('#acct').addEventListener('click',e=>{const b=e.target.closest('button[data-ac],button[data-dc],button[data-rm],button[data-ij],button[data-di]');if(!b)return;const d=b.dataset;
+ if(d.ac!==undefined)acDo('/friend-accept',{username:d.ac}).then(j=>j&&toast('You and '+d.ac+' are now friends.'));
+ else if(d.dc!==undefined)acDo('/friend-decline',{username:d.dc});
+ else if(d.rm!==undefined){if(confirm('Remove '+d.rm+' from your friends?'))acDo('/friend-remove',{username:d.rm})}
+ else if(d.di!==undefined)acDo('/invite-dismiss',{id:d.di});
+ else if(d.ij!==undefined){const i=AC.me.invites.find(x=>x.id===d.ij);if(i)joinInvite(i)}});
+$('#lobInv').addEventListener('click',async e=>{const b=e.target.closest('button[data-iv]');if(!b)return;b.disabled=true;b.textContent='Sending...';
+ try{await acApi('POST','/invite-send',{username:b.dataset.iv,room:OL.id,roomToken:OL.token});AC.sent.add(OL.id+'|'+b.dataset.iv);AC.lobKey='';lobFriends(AC.me);toast('Invite sent to '+b.dataset.iv+'.')}
+ catch(x){b.disabled=false;b.textContent='Invite';toast(x.message,1);if(x.status===401)acSet(null,null)}});
+document.addEventListener('visibilitychange',acPoll);
+$('#acct').hidden=!HAS_API;setMode('login');
+if(AC.tok&&HAS_API)acApi('GET','/me').then(j=>acSet(AC.tok,j.me)).catch(e=>{if(e.status===401)acSet(null,null)});
+
+/* ---------- home screen: play on this device / online ---------- */
+function homeTab(t){const on=t=='online';$('#locBox').hidden=on;$('#onSec').hidden=!on;$('#tabLocal').setAttribute('aria-selected',!on);$('#tabOnline').setAttribute('aria-selected',on);try{localStorage.setItem('sd_tab',t)}catch(e){}}
+$('#tabLocal').onclick=()=>homeTab('local');$('#tabOnline').onclick=()=>homeTab('online');
+{let t='local';try{t=localStorage.getItem('sd_tab')||'local'}catch(e){}
+ if(new URLSearchParams(location.search).get('room')||AC.tok&&HAS_API&&t=='online')t='online';homeTab(t)}
+$('#lobLink').textContent=navigator.share&&matchMedia('(pointer:coarse)').matches?'Share invite':'Copy invite link';
+
+/* come back after a refresh */
+/* opening or revisiting the game always starts at the dashboard: a room never survives leaving, so there is nothing to rejoin */
+clearSess();
+
+/* installable app + offline support */
+let DEF=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();DEF=e;$('#install').hidden=false;netState()});
+$('#install').onclick=async()=>{if(!DEF)return;DEF.prompt();try{await DEF.userChoice}catch(e){}DEF=null;$('#install').hidden=true;netState()};
+addEventListener('appinstalled',()=>{DEF=null;$('#install').hidden=true;netState()});
+netState();
+if('serviceWorker' in navigator&&HAS_API)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+</script></body></html>
